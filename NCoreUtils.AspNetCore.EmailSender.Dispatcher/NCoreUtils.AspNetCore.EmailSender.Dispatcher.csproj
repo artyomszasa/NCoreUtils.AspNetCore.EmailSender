@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NCoreUtils.AspNetCore.EmailSender.Internal\NCoreUtils.AspNetCore.EmailSender.Internal.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NCoreUtils.AspNetCore.Logging.GoogleFluentd" Version="3.1.0-alpha1" />
+    <PackageReference Include="NCoreUtils.Extensions.Json.Immutable" Version="1.0.1" />
+    <PackageReference Include="SendGrid" Version="9.15.1" />
+  </ItemGroup>
+</Project>
