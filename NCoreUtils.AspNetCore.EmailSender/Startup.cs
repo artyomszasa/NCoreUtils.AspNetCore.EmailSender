@@ -53,6 +53,7 @@ namespace NCoreUtils.AspNetCore.EmailSender
                 .AddSingleton(_ => publisherTask.Result)
                 .AddOptions<JsonSerializerOptions>().Services
                 .ConfigureOptions<ConfigureJson>()
+                .AddSingleton<IEmailSender, EmailScheduler>()
                 .AddCors(b => b.AddDefaultPolicy(opts => opts
                     .AllowAnyHeader()
                     .AllowAnyMethod()

@@ -7,17 +7,17 @@ namespace NCoreUtils
     {
         public EmailAddress? From { get; set; }
 
-        public List<EmailAddress> To { get; set; }
+        public ListWrapper<EmailAddress> To;
 
         public string? Subject { get; set; }
 
-        public List<EmailAddress> Cc { get; set; }
+        public ListWrapper<EmailAddress> Cc;
 
-        public List<EmailAddress> Bcc { get; set; }
+        public ListWrapper<EmailAddress> Bcc;
 
-        public List<EmailContent> Contents { get; set; }
+        public ListWrapper<EmailContent> Contents;
 
-        public List<EmailAttachment> Attachments { get; set; }
+        public ListWrapper<EmailAttachment> Attachments;
 
         public EmailMessage Build()
             => new EmailMessage(
