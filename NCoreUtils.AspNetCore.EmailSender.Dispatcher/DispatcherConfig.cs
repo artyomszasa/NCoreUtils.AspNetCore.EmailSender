@@ -39,7 +39,7 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
                 {
                     var options = new SendGridClientOptions
                     {
-                        ApiKey = uri.Authority
+                        ApiKey = uri.UserInfo
                     };
                     var hostBuilder = new UriBuilder
                     {
