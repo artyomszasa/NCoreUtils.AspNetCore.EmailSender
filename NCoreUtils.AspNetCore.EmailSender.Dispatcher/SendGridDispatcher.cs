@@ -39,9 +39,18 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
             var m = new SendGridMessage();
             m.SetFrom(message.From.ToSendGridAddress());
             m.SetSubject(message.Subject);
-            m.AddTos(message.To.Select(SendGridExtensions.ToSendGridAddress).ToList());
-            m.AddCcs(message.Cc.Select(SendGridExtensions.ToSendGridAddress).ToList());
-            m.AddBccs(message.Bcc.Select(SendGridExtensions.ToSendGridAddress).ToList());
+            if (message.To.Count > 0)
+            {
+                m.AddTos(message.To.Select(SendGridExtensions.ToSendGridAddress).ToList());
+            }
+            if (message.Cc.Count > 0)
+            {
+                m.AddCcs(message.Cc.Select(SendGridExtensions.ToSendGridAddress).ToList());
+            }
+            if (message.Bcc.Count > 0)
+            {
+                m.AddBccs(message.Bcc.Select(SendGridExtensions.ToSendGridAddress).ToList());
+            }
             foreach (var content in message.Contents)
             {
                 m.AddContent(content.MediaType, content.Content);
