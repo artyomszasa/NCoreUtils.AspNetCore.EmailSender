@@ -26,7 +26,7 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
             }
         };
 
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         private readonly DispatcherConfig _config;
 
@@ -61,7 +61,15 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
             {
                 var dispatcher = _config.CreateSender(entry.Owner);
                 var id = await dispatcher.ScheduleAsync(entry.Message, cancellationToken);
-                _logger.LogInformation("Successfully sent email message [messageId = {0}] => {1}.", messageId, id);
+                _logger.LogInformation(
+                    "Successfully sent email message [from = {0}, to = [{1}], cc = [{2}], bcc = [{3}], messageId = {4}] => {5}.",
+                    entry.Message.From,
+                    string.Join(", ", entry.Message.To),
+                    string.Join(", ", entry.Message.Cc),
+                    string.Join(", ", entry.Message.Bcc),
+                    messageId,
+                    id
+                );
                 return 202;
             }
             catch (Exception exn)

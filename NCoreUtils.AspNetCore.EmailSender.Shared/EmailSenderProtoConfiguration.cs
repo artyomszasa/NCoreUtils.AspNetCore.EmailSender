@@ -9,14 +9,14 @@ namespace NCoreUtils
                 .SetDefaultInputType(InputType.Json(EmailSenderJsonOptions.Default))
                 .SetDefaultOutputType(OutputType.Json(EmailSenderJsonOptions.Default))
                 .SetDefaultErrorType(ErrorType.Json(EmailSenderJsonOptions.Default))
-                .SetNamingPolicy(NamingPolicy.SnakeCase);
+                .SetNamingPolicy(NamingConvention.SnakeCase);
 
         public static ServiceDescriptorBuilder ApplyEmailSenderDefaults(this ServiceDescriptorBuilder builder, string? prefix)
             => builder
-                .SetPath(prefix)
+                .SetPath(prefix ?? "i_email_sender")
                 .SetDefaultInputType(InputType.Json(EmailSenderJsonOptions.Default))
                 .SetDefaultOutputType(OutputType.Json(EmailSenderJsonOptions.Default))
                 .SetDefaultErrorType(ErrorType.Json(EmailSenderJsonOptions.Default))
-                .SetNamingPolicy(NamingPolicy.SnakeCase);
+                .SetNamingPolicy(NamingConvention.SnakeCase);
     }
 }
