@@ -75,7 +75,8 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
                         })
                         .AddSingleton(mqttClientOptions)
                         .AddHostedService<MqttSubscriberService>()
-                        .AddSingleton<EmailProcessor>();
+                        .AddSingleton<EmailProcessor>()
+                        .AddSingleton(serviceProvider => DispatcherConfig.FromConfiguration(serviceProvider, configuration.GetSection("Dispatchers")));
                 });
         }
     }
