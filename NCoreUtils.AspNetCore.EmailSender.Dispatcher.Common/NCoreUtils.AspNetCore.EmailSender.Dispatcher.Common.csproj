@@ -4,6 +4,7 @@
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <RootNamespace>NCoreUtils.AspNetCore.EmailSender.Dispatcher</RootNamespace>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.AspNetCore.EmailSender.Internal\NCoreUtils.AspNetCore.EmailSender.Internal.csproj" />

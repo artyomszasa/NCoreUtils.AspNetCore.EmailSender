@@ -68,6 +68,7 @@ namespace NCoreUtils.AspNetCore.EmailSender
                 .AddSingleton(mqttClientOptions)
                 .AddSingleton<IMqttClientService, MqttClientService>()
                 .AddHostedService(serviceProvider => serviceProvider.GetRequiredService<IMqttClientService>())
+                .AddSingleton<IEmailSender, MqttEmailScheduler>()
                 // JSON serialization
                 .AddOptions<JsonSerializerOptions>().Services
                 .ConfigureOptions<ConfigureJson>()
