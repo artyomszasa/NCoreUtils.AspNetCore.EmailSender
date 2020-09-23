@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NCoreUtils.AspNetCore.EmailSender.Shared\NCoreUtils.AspNetCore.EmailSender.Shared.csproj" />
+    <ProjectReference Include="..\NCoreUtils.AspNetCore.EmailSender.Internal\NCoreUtils.AspNetCore.EmailSender.Internal.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NCoreUtils.AspNetCore.Logging.GoogleFluentd" Version="3.1.0-alpha1" />
+    <PackageReference Include="NCoreUtils.AspNetCore.OAuth2" Version="3.1.0-beta03" />
+    <PackageReference Include="NCoreUtils.AspNetCore.Proto" Version="3.1.0" />
+    <PackageReference Include="MQTTnet" Version="3.0.12" />
+  </ItemGroup>
+</Project>
