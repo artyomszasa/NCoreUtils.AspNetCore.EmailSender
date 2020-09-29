@@ -3,6 +3,14 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <RetainVMGarbageCollection>false</RetainVMGarbageCollection>
+    <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.AspNetCore.EmailSender.Shared\NCoreUtils.AspNetCore.EmailSender.Shared.csproj" />
