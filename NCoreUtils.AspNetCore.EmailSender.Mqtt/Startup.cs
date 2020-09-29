@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -49,9 +50,20 @@ namespace NCoreUtils.AspNetCore.EmailSender
         {
             // MQTT client options
             var mqttConfig = _configuration.GetSection("Mqtt:Client").Get<MqttClientConfiguration>() ?? new MqttClientConfiguration();
+            var mqttHost = mqttConfig.Host ?? throw new InvalidOperationException("No MQTT host supplied.");
+            var addresses = Dns.GetHostAddresses(mqttHost);
+            foreach (var address in addresses)
+            {
+                Console.WriteLine($"{mqttHost} => {address}");
+            }
+            if (addresses.Length == 0)
+            {
+                Console.Error.WriteLine($"Unable to resolve MQTT host address [{mqttHost}]");
+                Environment.Exit(-1);
+            }
             var mqttClientOptions =
                 new MqttClientOptionsBuilder()
-                    .WithTcpServer(mqttConfig.Host ?? throw new InvalidOperationException("No MQTT host supplied."), mqttConfig.Port)
+                    .WithTcpServer(addresses[0].ToString(), mqttConfig.Port)
                     .WithCleanSession(mqttConfig.CleanSession ?? true)
                     .Build();
 
