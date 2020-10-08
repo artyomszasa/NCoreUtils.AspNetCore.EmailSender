@@ -11,6 +11,8 @@ namespace NCoreUtils.AspNetCore.EmailSender
 
         public string Topic { get; set; } = default!;
 
+        public int BufferSize { get; set; } = 32 * 1024;
+
         public MqttClientServiceOptions(IOptionsMonitor<JsonSerializerOptions> jsonSerializerOptionsMonitor)
         {
             _jsonSerializerOptionsMonitor = jsonSerializerOptionsMonitor;

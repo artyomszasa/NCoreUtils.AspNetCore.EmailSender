@@ -121,7 +121,7 @@ namespace NCoreUtils.AspNetCore.EmailSender
             {
                 throw new InvalidOperationException("MQTT client is not connected.");
             }
-            var buffer = ArrayPool<byte>.Shared.Rent(16 * 1024);
+            var buffer = ArrayPool<byte>.Shared.Rent(_serviceOptions.BufferSize);
             try
             {
                 int size;

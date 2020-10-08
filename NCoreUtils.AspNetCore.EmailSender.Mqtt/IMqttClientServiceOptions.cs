@@ -7,5 +7,7 @@ namespace NCoreUtils.AspNetCore.EmailSender
         JsonSerializerOptions JsonSerializerOptions { get; }
 
         string Topic { get; }
+
+        int BufferSize { get; }
     }
 }
