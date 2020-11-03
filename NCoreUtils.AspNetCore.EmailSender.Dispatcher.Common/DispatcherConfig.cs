@@ -21,6 +21,20 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
             return new DispatcherConfig(serviceProvider, config);
         }
 
+        private static SmtpCredentials? GetSmtpCredentials(Uri uri)
+        {
+            if (string.IsNullOrEmpty(uri.UserInfo))
+            {
+                return default;
+            }
+            var i = uri.UserInfo.IndexOf(':');
+            if (-1 == i)
+            {
+                return new SmtpCredentials(uri.UserInfo, string.Empty);
+            }
+            return new SmtpCredentials(uri.UserInfo.Substring(0, i), uri.UserInfo.Substring(i + 1));
+        }
+
         private readonly IServiceProvider _serviceProvider;
 
         private readonly IReadOnlyDictionary<string, Uri> _configuration;
@@ -51,6 +65,16 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
                     options.Host = hostBuilder.Uri.AbsoluteUri;
                     var logger = _serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger<SendGridDispatcher>();
                     return new SendGridDispatcher(options, logger, _serviceProvider.GetService<IHttpClientFactory>());
+                }
+                if (uri.Scheme == "smtp" || uri.Scheme == "smtps")
+                {
+                    var configuration = new SmtpConfiguration(
+                        host: uri.Host,
+                        port: 0 > uri.Port ? 25 : uri.Port,
+                        useSsl: uri.Scheme == "smtps",
+                        user: GetSmtpCredentials(uri)
+                    );
+                    return new SmtpDispatcher(configuration);
                 }
                 throw new InvalidOperationException($"Unsupported dispatcher URI: {uri.AbsoluteUri}.");
             }
