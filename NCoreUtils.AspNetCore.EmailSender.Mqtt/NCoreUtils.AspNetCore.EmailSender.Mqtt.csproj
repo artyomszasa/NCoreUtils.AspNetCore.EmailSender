@@ -18,7 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NCoreUtils.AspNetCore.Logging.GoogleFluentd" Version="3.1.0-alpha1" />
-    <PackageReference Include="NCoreUtils.AspNetCore.OAuth2" Version="3.1.0-beta03" />
+    <PackageReference Include="NCoreUtils.AspNetCore.OAuth2" Version="3.1.0-beta06" />
     <PackageReference Include="NCoreUtils.AspNetCore.Proto" Version="3.1.0" />
     <PackageReference Include="MQTTnet" Version="3.0.12" />
   </ItemGroup>

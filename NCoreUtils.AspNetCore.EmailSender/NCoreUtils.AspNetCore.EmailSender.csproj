@@ -19,7 +19,7 @@
   <ItemGroup>
     <PackageReference Include="Google.Cloud.PubSub.V1" Version="2.0.0" />
     <PackageReference Include="NCoreUtils.AspNetCore.Logging.GoogleFluentd" Version="3.1.0-alpha1" />
-    <PackageReference Include="NCoreUtils.AspNetCore.OAuth2" Version="3.1.0-alpha9" />
-    <PackageReference Include="NCoreUtils.AspNetCore.Proto" Version="3.1.0-alpha10" />
+    <PackageReference Include="NCoreUtils.AspNetCore.OAuth2" Version="3.1.0-beta06" />
+    <PackageReference Include="NCoreUtils.AspNetCore.Proto" Version="3.1.0" />
   </ItemGroup>
 </Project>
