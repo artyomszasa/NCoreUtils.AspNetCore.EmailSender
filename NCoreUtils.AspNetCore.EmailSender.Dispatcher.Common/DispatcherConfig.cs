@@ -63,6 +63,7 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
                         Path = uri.AbsolutePath
                     };
                     options.Host = hostBuilder.Uri.AbsoluteUri;
+                    options.HttpErrorAsException = true;
                     var logger = _serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger<SendGridDispatcher>();
                     return new SendGridDispatcher(options, logger, _serviceProvider.GetService<IHttpClientFactory>());
                 }
