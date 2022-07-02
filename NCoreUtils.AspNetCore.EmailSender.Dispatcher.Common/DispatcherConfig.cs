@@ -30,9 +30,9 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
             var i = uri.UserInfo.IndexOf(':');
             if (-1 == i)
             {
-                return new SmtpCredentials(uri.UserInfo, string.Empty);
+                return new SmtpCredentials(Uri.UnescapeDataString(uri.UserInfo), string.Empty);
             }
-            return new SmtpCredentials(uri.UserInfo.Substring(0, i), uri.UserInfo.Substring(i + 1));
+            return new SmtpCredentials(Uri.UnescapeDataString(uri.UserInfo.Substring(0, i)), Uri.UnescapeDataString(uri.UserInfo[(i + 1)..]));
         }
 
         private readonly IServiceProvider _serviceProvider;
