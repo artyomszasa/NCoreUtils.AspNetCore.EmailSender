@@ -65,7 +65,7 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
             }
             email.Body = bodyBuilder.ToMessageBody();
             using var client = new SmtpClient();
-            await client.ConnectAsync(_configuration.Host, _configuration.Port, _configuration.UseSsl, cancellationToken);
+            await client.ConnectAsync(_configuration.Host, _configuration.Port, MailKit.Security.SecureSocketOptions.Auto, cancellationToken);
             if (_configuration.User.HasValue)
             {
                 await client.AuthenticateAsync(_utf8, _configuration.User.Value.Username, _configuration.User.Value.Password, cancellationToken);
