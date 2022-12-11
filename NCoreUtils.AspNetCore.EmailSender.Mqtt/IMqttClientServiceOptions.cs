@@ -1,13 +1,8 @@
-using System.Text.Json;
+namespace NCoreUtils.AspNetCore.EmailSender;
 
-namespace NCoreUtils.AspNetCore.EmailSender
+public interface IMqttClientServiceOptions
 {
-    public interface IMqttClientServiceOptions
-    {
-        JsonSerializerOptions JsonSerializerOptions { get; }
+    string Topic { get; }
 
-        string Topic { get; }
-
-        int BufferSize { get; }
-    }
+    int BufferSize { get; }
 }

@@ -6,80 +6,94 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SendGrid;
 
-namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
+namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher;
+
+public class DispatcherConfig
 {
-    public class DispatcherConfig
+    private static string GetRequiredValue(IConfiguration configuration, string path)
     {
-        public static DispatcherConfig FromConfiguration(IServiceProvider serviceProvider, IConfiguration configuration)
+        var value = configuration[path];
+        if (value is null)
         {
-            var entries = configuration.Get<List<DispatcherConfigEntry>>();
-            var config = new Dictionary<string, Uri>();
-            foreach (var entry in entries)
-            {
-                config[entry.Owner] = new Uri(entry.Uri, UriKind.Absolute);
-            }
-            return new DispatcherConfig(serviceProvider, config);
+            var fullPath = configuration is IConfigurationSection section
+                ? $"{section.Path}:{path}"
+                : path;
+            throw new InvalidOperationException($"No configuration value found at \"{fullPath}\".");
         }
+        return value;
+    }
 
-        private static SmtpCredentials? GetSmtpCredentials(Uri uri)
+    private static IReadOnlyDictionary<string, Uri> GetConfigEntries(IConfiguration configuration)
+    {
+        var map = new Dictionary<string, Uri>();
+        foreach (var section in configuration.GetChildren())
         {
-            if (string.IsNullOrEmpty(uri.UserInfo))
-            {
-                return default;
-            }
-            var i = uri.UserInfo.IndexOf(':');
-            if (-1 == i)
-            {
-                return new SmtpCredentials(Uri.UnescapeDataString(uri.UserInfo), string.Empty);
-            }
-            return new SmtpCredentials(Uri.UnescapeDataString(uri.UserInfo.Substring(0, i)), Uri.UnescapeDataString(uri.UserInfo[(i + 1)..]));
+            map[GetRequiredValue(section, "Owner")] = new Uri(GetRequiredValue(section, "Uri"), UriKind.Absolute);
         }
+        return map;
+    }
 
-        private readonly IServiceProvider _serviceProvider;
+    public static DispatcherConfig FromConfiguration(IServiceProvider serviceProvider, IConfiguration configuration)
+        => new(serviceProvider, GetConfigEntries(configuration));
 
-        private readonly IReadOnlyDictionary<string, Uri> _configuration;
-
-        public DispatcherConfig(IServiceProvider serviceProvider, IReadOnlyDictionary<string, Uri> configuration)
+    private static SmtpCredentials? GetSmtpCredentials(Uri uri)
+    {
+        if (string.IsNullOrEmpty(uri.UserInfo))
         {
-            _serviceProvider = serviceProvider;
-            _configuration = configuration;
+            return default;
         }
-
-        public IEmailSender CreateSender(string owner)
+        var i = uri.UserInfo.IndexOf(':');
+        if (-1 == i)
         {
-            if (_configuration.TryGetValue(owner, out var uri))
+            return new SmtpCredentials(Uri.UnescapeDataString(uri.UserInfo), string.Empty);
+        }
+        return new SmtpCredentials(Uri.UnescapeDataString(uri.UserInfo.Substring(0, i)), Uri.UnescapeDataString(uri.UserInfo[(i + 1)..]));
+    }
+
+    private readonly IServiceProvider _serviceProvider;
+
+    private readonly IReadOnlyDictionary<string, Uri> _configuration;
+
+    public DispatcherConfig(IServiceProvider serviceProvider, IReadOnlyDictionary<string, Uri> configuration)
+    {
+        _serviceProvider = serviceProvider;
+        _configuration = configuration;
+    }
+
+    public IEmailSender CreateSender(string owner)
+    {
+        if (_configuration.TryGetValue(owner, out var uri))
+        {
+            if (uri.Scheme == "sendgrid")
             {
-                if (uri.Scheme == "sendgrid")
+                var options = new SendGridClientOptions
                 {
-                    var options = new SendGridClientOptions
-                    {
-                        ApiKey = uri.UserInfo
-                    };
-                    var hostBuilder = new UriBuilder
-                    {
-                        Scheme = "https",
-                        Host = uri.Host,
-                        Port = uri.Port,
-                        Path = uri.AbsolutePath
-                    };
-                    options.Host = hostBuilder.Uri.AbsoluteUri;
-                    options.HttpErrorAsException = true;
-                    var logger = _serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger<SendGridDispatcher>();
-                    return new SendGridDispatcher(options, logger, _serviceProvider.GetService<IHttpClientFactory>());
-                }
-                if (uri.Scheme == "smtp" || uri.Scheme == "smtps")
+                    ApiKey = uri.UserInfo
+                };
+                var hostBuilder = new UriBuilder
                 {
-                    var configuration = new SmtpConfiguration(
-                        host: uri.Host,
-                        port: 0 > uri.Port ? 25 : uri.Port,
-                        useSsl: uri.Scheme == "smtps",
-                        user: GetSmtpCredentials(uri)
-                    );
-                    return new SmtpDispatcher(configuration);
-                }
-                throw new InvalidOperationException($"Unsupported dispatcher URI: {uri.AbsoluteUri}.");
+                    Scheme = "https",
+                    Host = uri.Host,
+                    Port = uri.Port,
+                    Path = uri.AbsolutePath
+                };
+                options.Host = hostBuilder.Uri.AbsoluteUri;
+                options.HttpErrorAsException = true;
+                var logger = _serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger<SendGridDispatcher>();
+                return new SendGridDispatcher(options, logger, _serviceProvider.GetService<IHttpClientFactory>());
             }
-            throw new InvalidOperationException($"No configuration for owner = {owner}.");
+            if (uri.Scheme == "smtp" || uri.Scheme == "smtps")
+            {
+                var configuration = new SmtpConfiguration(
+                    host: uri.Host,
+                    port: 0 > uri.Port ? 25 : uri.Port,
+                    useSsl: uri.Scheme == "smtps",
+                    user: GetSmtpCredentials(uri)
+                );
+                return new SmtpDispatcher(configuration);
+            }
+            throw new InvalidOperationException($"Unsupported dispatcher URI: {uri.AbsoluteUri}.");
         }
+        throw new InvalidOperationException($"No configuration for owner = {owner}.");
     }
 }

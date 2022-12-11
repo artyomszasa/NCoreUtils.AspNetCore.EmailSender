@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>11.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <Version>7.0.0-alpha00</Version>
+    <ProtoVersion>6.0.0-rc07</ProtoVersion>
+    <Fx3Version>3.1.16</Fx3Version>
+    <Fx6Version>6.0.0</Fx6Version>
+    <Fx7Version>7.0.0</Fx7Version>
+    <FxVersion Condition=" '$(TargetFramework)' == 'netstandard2.1' ">$(Fx3Version)</FxVersion>
+    <FxVersion Condition=" '$(TargetFramework)' == 'net6.0' ">$(Fx6Version)</FxVersion>
+    <FxVersion Condition=" '$(TargetFramework)' == 'net7.0' ">$(Fx7Version)</FxVersion>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
+</Project>

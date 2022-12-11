@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NCoreUtils.Logging;
 
 namespace NCoreUtils.AspNetCore.EmailSender
 {
@@ -22,7 +23,7 @@ namespace NCoreUtils.AspNetCore.EmailSender
             }
             else
             {
-                return new IPEndPoint(IPAddress.Parse(input.Substring(0, portIndex)), int.Parse(input.Substring(portIndex + 1)));
+                return new IPEndPoint(IPAddress.Parse(input.AsSpan(0, portIndex)), int.Parse(input.AsSpan(portIndex + 1)));
             }
         }
 
@@ -68,13 +69,15 @@ namespace NCoreUtils.AspNetCore.EmailSender
                     builder
                         .ClearProviders()
                         .AddConfiguration(configuration.GetSection("Logging"));
+                    builder.Services.AddDefaultTraceIdProvider();
                     if (context.HostingEnvironment.IsDevelopment())
                     {
                         builder.AddConsole().AddDebug();
                     }
                     else
                     {
-                        builder.AddGoogleFluentdSink(projectId: configuration["Google:ProjectId"]);
+                        builder.Services.AddLoggingContext();
+                        builder.AddGoogleFluentd<AspNetCoreLoggerProvider>(projectId: configuration["Google:ProjectId"]);
                     }
                 })
                 .ConfigureWebHost(webBuilder =>

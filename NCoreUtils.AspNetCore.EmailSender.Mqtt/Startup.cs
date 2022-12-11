@@ -1,40 +1,18 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
-using MQTTnet.Client.Options;
+using MQTTnet.Client;
+#if !DEBUG
+using NCoreUtils.Logging;
+#endif
 
 namespace NCoreUtils.AspNetCore.EmailSender
 {
     public class Startup
     {
-        private sealed class ConfigureJson : IConfigureOptions<JsonSerializerOptions>
-        {
-            public void Configure(JsonSerializerOptions options)
-            {
-                EmailSenderJsonOptions.ApplyDefaults(options);
-                options.Converters.Add(ImmutableJsonConverterFactory.GetOrCreate<EmailMessageTask>());
-            }
-        }
-
-        private static ForwardedHeadersOptions ConfigureForwardedHeaders()
-        {
-            var opts = new ForwardedHeadersOptions();
-            opts.KnownNetworks.Clear();
-            opts.KnownProxies.Clear();
-            opts.ForwardedHeaders = ForwardedHeaders.All;
-            return opts;
-        }
-
         private readonly IConfiguration _configuration;
 
         private readonly IWebHostEnvironment _env;
@@ -48,7 +26,7 @@ namespace NCoreUtils.AspNetCore.EmailSender
         public void ConfigureServices(IServiceCollection services)
         {
             // MQTT client options
-            var mqttConfig = _configuration.GetSection("Mqtt:Client").Get<MqttClientConfiguration>() ?? new MqttClientConfiguration();
+            var mqttConfig = _configuration.GetSection("Mqtt:Client").GetMqttClientConfiguration() ?? MqttClientConfiguration.Default;
             var mqttClientOptions =
                 new MqttClientOptionsBuilder()
                     .WithTcpServer(mqttConfig.Host ?? throw new InvalidOperationException("No MQTT host supplied."), mqttConfig.Port)
@@ -59,19 +37,11 @@ namespace NCoreUtils.AspNetCore.EmailSender
                 // HTTP Context access
                 .AddHttpContextAccessor()
                 // MQTT client
-                .AddSingleton<IMqttClientServiceOptions>(serviceProvider =>
-                {
-                    var options = ActivatorUtilities.CreateInstance<MqttClientServiceOptions>(serviceProvider);
-                    _configuration.GetSection("Mqtt").Bind(options);
-                    return options;
-                })
+                .AddSingleton<IMqttClientServiceOptions>(_configuration.GetSection("Mqtt").GetMqttClientServiceOptions())
                 .AddSingleton(mqttClientOptions)
                 .AddSingleton<IMqttClientService, MqttClientService>()
                 .AddHostedService(serviceProvider => serviceProvider.GetRequiredService<IMqttClientService>())
                 .AddSingleton<IEmailSender, MqttEmailScheduler>()
-                // JSON serialization
-                .AddOptions<JsonSerializerOptions>().Services
-                .ConfigureOptions<ConfigureJson>()
                 // CORS
                 .AddCors(b => b.AddDefaultPolicy(opts => opts
                     .AllowAnyHeader()
@@ -87,27 +57,27 @@ namespace NCoreUtils.AspNetCore.EmailSender
                 .AddRouting();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
-            #if DEBUG
-            if (env.IsDevelopment())
+#if DEBUG
+            if (_env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-            #endif
+#endif
 
             app
-                .UseForwardedHeaders(ConfigureForwardedHeaders())
-                #if !DEBUG
+                .UseForwardedHeaders(_configuration.GetSection("ForwardedHeaders"))
+#if !DEBUG
                 .UsePrePopulateLoggingContext()
-                #endif
+#endif
                 .UseCors()
                 .UseRouting()
                 .UseAuthentication()
                 .UseAuthorization()
                 .UseEndpoints(endpoints =>
                 {
-                    endpoints.MapProto<IEmailSender>(b => b.ApplyEmailSenderDefaults(null));
+                    endpoints.MapMqttEmailScheduler();
                 });
         }
     }

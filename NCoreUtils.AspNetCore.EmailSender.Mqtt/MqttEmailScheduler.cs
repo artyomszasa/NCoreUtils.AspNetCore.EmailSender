@@ -3,10 +3,14 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using NCoreUtils.AspNetCore.Proto;
+using NCoreUtils.Internal;
 using NCoreUtils.OAuth2;
+using NCoreUtils.Proto;
 
 namespace NCoreUtils.AspNetCore.EmailSender
 {
+    [ProtoService(typeof(EmailSenderInfo), typeof(EmailSenderSerializerContext))]
     public class MqttEmailScheduler : IEmailSender
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -26,7 +30,7 @@ namespace NCoreUtils.AspNetCore.EmailSender
             {
                 throw new InvalidOperationException($"Email scheduler is being invoked outside of request context.");
             }
-            if (!context.User.Identity.IsAuthenticated)
+            if (true != context.User.Identity?.IsAuthenticated)
             {
                 throw new UnauthorizedException();
             }
@@ -35,7 +39,9 @@ namespace NCoreUtils.AspNetCore.EmailSender
             {
                 throw new ForbiddenException($"Current user does not specify ownership.");
             }
-            var messageId = await _mqttClientService.PublishAsync(new EmailMessageTask(message, owner), cancellationToken);
+            var messageId = await _mqttClientService
+                .PublishAsync(new EmailMessageTask(message, owner), EmailMessageTaskSerializerContext.Default.EmailMessageTask, cancellationToken)
+                .ConfigureAwait(false);
             return messageId.HasValue ? messageId.Value.ToString() : string.Empty;
         }
     }

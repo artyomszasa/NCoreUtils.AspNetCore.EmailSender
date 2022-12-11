@@ -5,25 +5,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MQTTnet.Client.Options;
+using MQTTnet.Client;
 
 namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
 {
     class Program
     {
-        private sealed class ConfigureJson : IConfigureOptions<JsonSerializerOptions>
-        {
-            public void Configure(JsonSerializerOptions options)
-            {
-                options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                options.Converters.Add(ImmutableJsonConverterFactory.GetOrCreate<EmailAddress>());
-                options.Converters.Add(ImmutableJsonConverterFactory.GetOrCreate<EmailAttachment>());
-                options.Converters.Add(ImmutableJsonConverterFactory.GetOrCreate<EmailContent>());
-                options.Converters.Add(ImmutableJsonConverterFactory.GetOrCreate<EmailMessage>());
-                options.Converters.Add(ImmutableJsonConverterFactory.GetOrCreate<EmailMessageTask>());
-            }
-        }
-
         private static IConfiguration CreateConfiguration()
             => new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
@@ -41,7 +28,7 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
         {
             var configuration = CreateConfiguration();
             // MQTT client options
-            var mqttConfig = configuration.GetSection("Mqtt:Client").Get<MqttClientConfiguration>() ?? new MqttClientConfiguration();
+            var mqttConfig = configuration.GetSection("Mqtt:Client").GetMqttClientConfiguration() ?? MqttClientConfiguration.Default;
             var mqttClientOptions =
                 new MqttClientOptionsBuilder()
                     .WithTcpServer(mqttConfig.Host ?? throw new InvalidOperationException("No MQTT host supplied."), mqttConfig.Port)
@@ -62,17 +49,8 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
                     services
                         // HTTP client
                         .AddHttpClient()
-                        // JSON serialization
-                        .AddOptions<JsonSerializerOptions>().Services
-                        .ConfigureOptions<ConfigureJson>()
-                        .AddTransient(serviceProvider => serviceProvider.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().CurrentValue)
                         // MQTT client
-                        .AddSingleton<IMqttClientServiceOptions>(serviceProvider =>
-                        {
-                            var options = ActivatorUtilities.CreateInstance<MqttClientServiceOptions>(serviceProvider);
-                            configuration.GetSection("Mqtt").Bind(options);
-                            return options;
-                        })
+                        .AddSingleton<IMqttClientServiceOptions>(configuration.GetSection("Mqtt").GetMqttClientServiceOptions())
                         .AddSingleton(mqttClientOptions)
                         .AddHostedService<MqttSubscriberService>()
                         .AddSingleton<EmailProcessor>()

@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,27 +6,19 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Client;
-using MQTTnet.Client.Connecting;
-using MQTTnet.Client.Disconnecting;
-using MQTTnet.Client.Options;
-using MQTTnet.Client.Receiving;
-using MQTTnet.Client.Subscribing;
+using NCoreUtils.Internal;
 
 namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
 {
-    public class MqttSubscriberService
-        : IHostedService
-        , IMqttClientConnectedHandler
-        , IMqttClientDisconnectedHandler
-        , IMqttApplicationMessageReceivedHandler
+    public class MqttSubscriberService : IHostedService
     {
-        private readonly SemaphoreSlim _sync = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _sync = new(1);
 
         private readonly EmailProcessor _processor;
 
         private readonly ILogger<MqttSubscriberService> _logger;
 
-        private readonly IMqttClientOptions _clientOptions;
+        private readonly MqttClientOptions _clientOptions;
 
         private readonly IMqttClientServiceOptions _serviceOptions;
 
@@ -39,7 +30,7 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
             EmailProcessor processor,
             ILogger<MqttSubscriberService> logger,
             IMqttClientServiceOptions serviceOptions,
-            IMqttClientOptions clientOptions)
+            MqttClientOptions clientOptions)
         {
             _processor = processor ?? throw new ArgumentNullException(nameof(processor));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -53,10 +44,14 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
             {
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
-                    _logger.LogDebug("Received payload: {{ {0} }}.", string.Join(", ", eventArgs.ApplicationMessage.Payload.Select(b => "0x" + b.ToString("X2"))));
+                    _logger.LogDebug("Received payload: {{ {Payload} }}.", Convert.ToBase64String(eventArgs.ApplicationMessage.Payload));
                 }
-                var entry = JsonSerializer.Deserialize<EmailMessageTask>(eventArgs.ApplicationMessage.Payload, _serviceOptions.JsonSerializerOptions);
-                var status = await _processor.ProcessAsync(entry, "<none>", CancellationToken.None);
+                var entry = JsonSerializer
+                    .Deserialize(eventArgs.ApplicationMessage.Payload, EmailMessageTaskSerializerContext.Default.EmailMessageTask)
+                    ?? throw new InvalidOperationException("Could not deserialize email message task.");
+                var status = await _processor
+                    .ProcessAsync(entry, "<none>", CancellationToken.None)
+                    .ConfigureAwait(false);
                 eventArgs.ProcessingFailed = status >= 400;
             }
             catch (Exception exn)
@@ -74,9 +69,9 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
         public async Task HandleConnectedAsync(MqttClientConnectedEventArgs eventArgs)
         {
             _logger.LogDebug(
-                "MQTT client created and connected successfully (result code = {0}, response = {1}).",
-                eventArgs.AuthenticateResult.ResultCode,
-                eventArgs.AuthenticateResult.ResponseInformation
+                "MQTT client created and connected successfully (result code = {ResultCode}, response = {ResponseInformation}).",
+                eventArgs.ConnectResult.ResultCode,
+                eventArgs.ConnectResult.ResponseInformation
             );
             await _client!.SubscribeAsync(new MqttClientSubscribeOptions
             {
@@ -88,7 +83,7 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
                 }
             });
             _logger.LogDebug(
-                "MQTT client successfully subscribed to topic {0}.",
+                "MQTT client successfully subscribed to topic {Topic}.",
                 _serviceOptions.Topic
             );
             _connected = true;
@@ -98,10 +93,14 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
         {
             _connected = false;
             Interlocked.MemoryBarrierProcessWide();
-            if (!(_client is null) && eventArgs.ReasonCode != MqttClientDisconnectReason.AdministrativeAction && !_connected)
+            if (_client is not null && eventArgs.Reason != MqttClientDisconnectReason.AdministrativeAction && !_connected)
             {
-                _logger.LogWarning(eventArgs.Exception, "MQTT client has disconnected, reason: {0}, trying to reconnect.", eventArgs.ReasonCode);
-                await DoConnectAsync(_client, CancellationToken.None);
+                _logger.LogWarning(
+                    eventArgs.Exception,
+                    "MQTT client has disconnected, reason: {Reason}, trying to reconnect.",
+                    eventArgs.Reason
+                );
+                await DoConnectAsync(_client, CancellationToken.None).ConfigureAwait(false);
             }
         }
 
@@ -113,9 +112,9 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
                 if (_client is null)
                 {
                     var client = new MqttFactory().CreateMqttClient();
-                    client.ConnectedHandler = this;
-                    client.DisconnectedHandler = this;
-                    client.ApplicationMessageReceivedHandler = this;
+                    client.ConnectedAsync += HandleConnectedAsync;
+                    client.DisconnectedAsync += HandleDisconnectedAsync;
+                    client.ApplicationMessageReceivedAsync += HandleApplicationMessageReceivedAsync;
                     _client = client;
                     await DoConnectAsync(client, cancellationToken);
                     _logger.LogDebug("MQTT service started successfully.");
@@ -144,9 +143,9 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
                 {
                     await _client.DisconnectAsync(new MqttClientDisconnectOptions
                     {
-                        ReasonCode = MqttClientDisconnectReason.AdministrativeAction,
+                        Reason = MqttClientDisconnectReason.AdministrativeAction,
                         ReasonString = "shutdown"
-                    });
+                    }, CancellationToken.None);
                     _client = default;
                     _logger.LogDebug("MQTT stopped successfully.");
                 }

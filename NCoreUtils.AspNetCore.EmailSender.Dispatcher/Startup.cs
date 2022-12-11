@@ -1,14 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+#if !DEBUG
+using NCoreUtils.Logging;
+#endif
 
 namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
 {
@@ -53,18 +52,18 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
 
         public void Configure(IApplicationBuilder app)
         {
-            #if DEBUG
+#if DEBUG
             if (_env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-            #endif
+#endif
 
             app
-                .UseForwardedHeaders(ConfigureForwardedHeaders())
-                #if !DEBUG
+                .UseForwardedHeaders(_configuration.GetSection("ForwardedHeaders"))
+#if !DEBUG
                 .UsePrePopulateLoggingContext()
-                #endif
+#endif
                 .UseCors()
                 .UseRouting()
                 .UseEndpoints(endpoints =>

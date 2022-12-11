@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <LangVersion>8.0</LangVersion>
-    <Nullable>enable</Nullable>
+    <TargetFramework>net7.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
     <ServerGarbageCollection>false</ServerGarbageCollection>
@@ -13,13 +11,16 @@
     <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NCoreUtils.AspNetCore.EmailSender.Shared\NCoreUtils.AspNetCore.EmailSender.Shared.csproj" />
+    <ProjectReference Include="..\NCoreUtils.EmailSender.Shared\NCoreUtils.EmailSender.Shared.csproj" />
     <ProjectReference Include="..\NCoreUtils.AspNetCore.EmailSender.Internal\NCoreUtils.AspNetCore.EmailSender.Internal.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NCoreUtils.AspNetCore.Logging.GoogleFluentd" Version="3.1.0-alpha1" />
-    <PackageReference Include="NCoreUtils.AspNetCore.OAuth2" Version="3.1.0-beta06" />
-    <PackageReference Include="NCoreUtils.AspNetCore.Proto" Version="3.1.0" />
-    <PackageReference Include="MQTTnet" Version="3.0.12" />
+    <PackageReference Include="MQTTnet" Version="4.1.4.563" />
+    <PackageReference Include="NCoreUtils.AspNetCore.ForwardedHeaders" Version="7.0.0" />
+    <PackageReference Include="NCoreUtils.AspNetCore.Logging" Version="6.0.0-alpha09" />
+    <PackageReference Include="NCoreUtils.AspNetCore.OAuth2" Version="6.0.0-rc03" />
+    <PackageReference Include="NCoreUtils.AspNetCore.Proto" Version="$(ProtoVersion)" />
+    <PackageReference Include="NCoreUtils.Logging.Google.Fluentd" Version="6.0.0-alpha09" />
+    <PackageReference Include="NCoreUtils.Proto.Generator" Version="$(ProtoVersion)" PrivateAssets="All" />
   </ItemGroup>
 </Project>

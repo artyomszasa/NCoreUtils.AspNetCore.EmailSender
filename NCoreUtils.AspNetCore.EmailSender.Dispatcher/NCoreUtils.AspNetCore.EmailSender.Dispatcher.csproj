@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <LangVersion>8.0</LangVersion>
-    <Nullable>enable</Nullable>
+    <TargetFramework>net7.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
     <ServerGarbageCollection>false</ServerGarbageCollection>
@@ -17,7 +15,8 @@
     <ProjectReference Include="..\NCoreUtils.AspNetCore.EmailSender.Dispatcher.Common\NCoreUtils.AspNetCore.EmailSender.Dispatcher.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NCoreUtils.AspNetCore.Logging.GoogleFluentd" Version="3.1.0-alpha1" />
-    <PackageReference Include="NCoreUtils.Extensions.Json.Immutable" Version="1.0.7" />
+    <PackageReference Include="NCoreUtils.AspNetCore.ForwardedHeaders" Version="7.0.0" />
+    <PackageReference Include="NCoreUtils.AspNetCore.Logging" Version="6.0.0-alpha09" />
+    <PackageReference Include="NCoreUtils.Logging.Google.Fluentd" Version="6.0.0-alpha09" />
   </ItemGroup>
 </Project>

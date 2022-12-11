@@ -1,13 +1,13 @@
-namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
+namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher;
+
+public partial record MqttClientConfiguration(
+    string? Host,
+    int? Port,
+    bool? CleanSession,
+    string? ClientId
+);
+
+public partial record MqttClientConfiguration
 {
-    public class MqttClientConfiguration
-    {
-        public string? Host { get; set; }
-
-        public int? Port { get; set; }
-
-        public bool? CleanSession { get; set; }
-
-        public string? ClientId { get; set; }
-    }
+    public static MqttClientConfiguration Default { get; } = new(default, default, default, default);
 }

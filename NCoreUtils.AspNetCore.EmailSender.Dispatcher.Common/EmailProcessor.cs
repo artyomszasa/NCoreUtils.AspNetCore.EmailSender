@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NCoreUtils.Internal;
 
 namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
 {
@@ -24,7 +25,7 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
                 var dispatcher = _config.CreateSender(entry.Owner);
                 var id = await dispatcher.ScheduleAsync(entry.Message, cancellationToken);
                 Logger.LogInformation(
-                    "Successfully sent email message [from = {0}, to = [{1}], cc = [{2}], bcc = [{3}], messageId = {4}] => {5}.",
+                    "Successfully sent email message [from = {Sender}, to = [{Recipients}], cc = [{Cc}], bcc = [{Bcc}], messageId = {MessageId}] => {Id}.",
                     entry.Message.From,
                     string.Join(", ", entry.Message.To),
                     string.Join(", ", entry.Message.Cc),
@@ -36,7 +37,7 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
             }
             catch (Exception exn)
             {
-                Logger.LogError(exn, "Failed to send email message [messageId = {0}].", messageId);
+                Logger.LogError(exn, "Failed to send email message [messageId = {MessageId}].", messageId);
                 return 200; // no retry...
             }
         }
