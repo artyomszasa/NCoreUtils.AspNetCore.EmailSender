@@ -31,6 +31,7 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
                 .SetBasePath(Environment.CurrentDirectory)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
                 .AddJsonFile("secrets/appsettings.json", optional: true, reloadOnChange: false)
+                .AddEnvironmentVariables("EMAIL_")
                 .Build();
 
             using var services = new ServiceCollection()

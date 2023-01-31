@@ -6,9 +6,11 @@
     <ServerGarbageCollection>false</ServerGarbageCollection>
     <RetainVMGarbageCollection>false</RetainVMGarbageCollection>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+    <!--
     <PublishReadyToRun>true</PublishReadyToRun>
     <PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings>
     <PublishTrimmed>true</PublishTrimmed>
+    -->
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
