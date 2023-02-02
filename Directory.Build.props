@@ -3,7 +3,7 @@
     <LangVersion>11.0</LangVersion>
     <Nullable>enable</Nullable>
     <Version>7.0.0-alpha00</Version>
-    <ProtoVersion>6.0.0-rc07</ProtoVersion>
+    <ProtoVersion>6.0.0-rc08</ProtoVersion>
     <Fx3Version>3.1.16</Fx3Version>
     <Fx6Version>6.0.0</Fx6Version>
     <Fx7Version>7.0.0</Fx7Version>

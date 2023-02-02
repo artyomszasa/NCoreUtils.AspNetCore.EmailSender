@@ -27,6 +27,7 @@ public class Startup
     {
         var publisherTask = PublisherClient.CreateAsync(new TopicName(_configuration["Google:ProjectId"], _configuration["Google:TopicId"]));
         services
+            .AddHttpClient()
             .AddHttpContextAccessor()
             .AddSingleton(_ => publisherTask.Result)
             .AddSingleton<IEmailSender, EmailScheduler>()
