@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +16,9 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
     {
         // NOTE: Required to use GOOGLE_APPLICATION_CREDENTIALS
         [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(Google.Apis.Auth.OAuth2.JsonCredentialParameters))]
-        private static async System.Threading.Tasks.Task Main(string[] args)
+#pragma warning disable IDE0060
+        private static async Task Main(string[] args)
+#pragma warning restore IDE0060
         {
             var cancellation = new CancellationTokenSource();
             Console.CancelKeyPress += (_, e) =>
