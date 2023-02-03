@@ -54,7 +54,8 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
                 Settings = new SubscriberClient.Settings
                 {
                     AckDeadline = TimeSpan.FromMinutes(5)
-                }
+                },
+                GoogleCredential = await Google.Apis.Auth.OAuth2.GoogleCredential.GetApplicationDefaultAsync()
             }.BuildAsync(cancellation.Token).ConfigureAwait(false);
             using var __ = cancellation.Token.Register(() =>
             {
