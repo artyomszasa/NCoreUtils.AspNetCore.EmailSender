@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NCoreUtils;
 
@@ -8,7 +6,7 @@ public struct ListWrapper<T>
 {
     private List<T>? _list;
 
-    public T this[int index]
+    public readonly T this[int index]
     {
         get => _list is null ? throw new IndexOutOfRangeException() : _list[index];
         set
@@ -21,43 +19,44 @@ public struct ListWrapper<T>
         }
     }
 
-    public int Count => _list is null ? 0 : _list.Count;
+    public readonly int Count => _list is null ? 0 : _list.Count;
 
-    public bool IsReadOnly => false;
+    public readonly bool IsReadOnly => false;
 
     public void Add(T item)
     {
-        _list ??= new List<T>();
+        _list ??= [];
         _list.Add(item);
     }
 
-    public void Clear()
+    public readonly void Clear()
         => _list?.Clear();
 
-    public bool Contains(T item)
+    public readonly bool Contains(T item)
         => _list is not null && _list.Contains(item);
 
-    public void CopyTo(T[] array, int arrayIndex)
+    public readonly void CopyTo(T[] array, int arrayIndex)
         => _list?.CopyTo(array, arrayIndex);
 
-    public IEnumerator<T> GetEnumerator()
+    public readonly IEnumerator<T> GetEnumerator()
         => _list?.GetEnumerator() ?? Enumerable.Empty<T>().GetEnumerator();
 
-    public int IndexOf(T item)
+    public readonly int IndexOf(T item)
         => _list is null ? -1 : _list.IndexOf(item);
 
     public void Insert(int index, T item)
     {
-        _list ??= new List<T>();
+        _list ??= [];
         _list.Insert(index, item);
     }
 
-    public bool Remove(T item)
+    public readonly bool Remove(T item)
         => _list is not null && _list.Remove(item);
 
-    public void RemoveAt(int index)
+    public readonly void RemoveAt(int index)
         => _list?.RemoveAt(index);
 
-    public T[] ToArray()
-        => _list is null ? Array.Empty<T>() : _list.ToArray();
+    [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "Array is used to allow potential optimizations.")]
+    public readonly T[] ToArray()
+        => _list is null ? Array.Empty<T>() : [.. _list];
 }

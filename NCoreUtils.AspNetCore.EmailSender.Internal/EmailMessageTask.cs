@@ -1,5 +1,3 @@
-using System;
-
 namespace NCoreUtils.Internal;
 
 public class EmailMessageTask

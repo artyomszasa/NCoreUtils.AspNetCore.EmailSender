@@ -1,23 +1,16 @@
-using System;
 using System.Runtime.CompilerServices;
 
 namespace NCoreUtils;
 
-public class EmailAddress
+public class EmailAddress(string email, string? name = default)
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator EmailAddress(string email)
         => new(email, default);
 
-    public string Email { get; }
+    public string Email { get; } = email ?? throw new ArgumentNullException(nameof(email));
 
-    public string? Name { get; }
-
-    public EmailAddress(string email, string? name = default)
-    {
-        Email = email ?? throw new ArgumentNullException(nameof(email));
-        Name = name;
-    }
+    public string? Name { get; } = name;
 
     // FIXME: noalloc version.
     public override string ToString()

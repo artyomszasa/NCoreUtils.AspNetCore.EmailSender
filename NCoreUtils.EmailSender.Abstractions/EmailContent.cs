@@ -1,8 +1,6 @@
-using System;
-
 namespace NCoreUtils;
 
-public class EmailContent
+public class EmailContent(string mediaType, string content)
 {
     public static class Text
     {
@@ -13,13 +11,7 @@ public class EmailContent
             => new("text/plain", content);
     }
 
-    public string MediaType { get; }
+    public string MediaType { get; } = mediaType ?? throw new ArgumentNullException(nameof(mediaType));
 
-    public string Content { get; }
-
-    public EmailContent(string mediaType, string content)
-    {
-        MediaType = mediaType ?? throw new ArgumentNullException(nameof(mediaType));
-        Content = content ?? string.Empty;
-    }
+    public string Content { get; } = content ?? string.Empty;
 }
