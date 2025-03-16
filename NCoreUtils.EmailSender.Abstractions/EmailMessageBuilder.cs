@@ -18,7 +18,7 @@ public struct EmailMessageBuilder
 
     public ListWrapper<EmailAttachment> Attachments;
 
-    public EmailMessage Build() => new(
+    public readonly EmailMessage Build() => new(
         From!,
         To.ToArray(),
         Subject!,

@@ -1,6 +1,11 @@
 namespace NCoreUtils;
 
-public class EmailAttachment(string filename, string mediaType, string contentId, EmailAttachmentDisposition disposition, byte[] data)
+public class EmailAttachment(
+    string filename,
+    string mediaType,
+    string contentId,
+    EmailAttachmentDisposition disposition,
+    byte[] data)
 {
     public string Filename { get; } = filename;
 

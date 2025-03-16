@@ -24,10 +24,7 @@ public struct ListWrapper<T>
     public readonly bool IsReadOnly => false;
 
     public void Add(T item)
-    {
-        _list ??= [];
-        _list.Add(item);
-    }
+        => (_list ??= []).Add(item);
 
     public readonly void Clear()
         => _list?.Clear();
@@ -45,10 +42,7 @@ public struct ListWrapper<T>
         => _list is null ? -1 : _list.IndexOf(item);
 
     public void Insert(int index, T item)
-    {
-        _list ??= [];
-        _list.Insert(index, item);
-    }
+        => (_list ??= []).Insert(index, item);
 
     public readonly bool Remove(T item)
         => _list is not null && _list.Remove(item);
@@ -57,6 +51,7 @@ public struct ListWrapper<T>
         => _list?.RemoveAt(index);
 
     [SuppressMessage("Style", "IDE0301:Simplify collection initialization", Justification = "Array is used to allow potential optimizations.")]
+    [SuppressMessage("Style", "IDE0305:Simplify collection initialization", Justification = "Array is used to allow potential optimizations.")]
     public readonly T[] ToArray()
-        => _list is null ? Array.Empty<T>() : [.. _list];
+        => _list is null ? Array.Empty<T>() : _list.ToArray();
 }
