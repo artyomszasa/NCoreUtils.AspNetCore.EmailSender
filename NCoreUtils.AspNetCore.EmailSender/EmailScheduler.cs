@@ -13,7 +13,7 @@ using NCoreUtils.Proto;
 namespace NCoreUtils.AspNetCore.EmailSender;
 
 [ProtoService(typeof(EmailSenderInfo), typeof(EmailSenderSerializerContext))]
-public class EmailScheduler : IEmailSender
+public partial class EmailScheduler : IEmailSender
 {
     private readonly PublisherClient _client;
 

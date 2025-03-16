@@ -11,7 +11,7 @@ using NCoreUtils.Proto;
 namespace NCoreUtils.AspNetCore.EmailSender
 {
     [ProtoService(typeof(EmailSenderInfo), typeof(EmailSenderSerializerContext))]
-    public class MqttEmailScheduler : IEmailSender
+    public partial class MqttEmailScheduler : IEmailSender
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
