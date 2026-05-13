@@ -1,6 +1,4 @@
-using System;
 using System.Globalization;
-using Google.Cloud.PubSub.V1;
 using Microsoft.Extensions.Configuration;
 
 namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher;
@@ -53,12 +51,4 @@ internal static class StartupExtensions
         }
         return boolValue;
     }
-
-    internal static SubscriptionName GetSubscriptionConfiguration(this IConfiguration configuration)
-        => SubscriptionName.FromProjectSubscription(
-                projectId: configuration.GetRequiredValue("Google:ProjectId"),
-                subscriptionId: configuration.GetRequiredValue("Google:SubscriptionId")
-            );
-
-
 }

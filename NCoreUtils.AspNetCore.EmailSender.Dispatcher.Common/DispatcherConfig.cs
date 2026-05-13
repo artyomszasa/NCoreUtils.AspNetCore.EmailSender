@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using SendGrid;
 
 namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher;
 
@@ -47,7 +43,7 @@ public class DispatcherConfig
         {
             return new SmtpCredentials(Uri.UnescapeDataString(uri.UserInfo), string.Empty);
         }
-        return new SmtpCredentials(Uri.UnescapeDataString(uri.UserInfo.Substring(0, i)), Uri.UnescapeDataString(uri.UserInfo[(i + 1)..]));
+        return new SmtpCredentials(Uri.UnescapeDataString(uri.UserInfo.AsSpan(0, i)), Uri.UnescapeDataString(uri.UserInfo.AsSpan(i + 1)));
     }
 
     private readonly IServiceProvider _serviceProvider;
@@ -66,21 +62,21 @@ public class DispatcherConfig
         {
             if (uri.Scheme == "sendgrid")
             {
-                var options = new SendGridClientOptions
-                {
-                    ApiKey = uri.UserInfo
-                };
                 var hostBuilder = new UriBuilder
                 {
                     Scheme = "https",
                     Host = uri.Host,
                     Port = uri.Port,
-                    Path = uri.AbsolutePath
+                    Path = uri.AbsolutePath is null or "" or "/"
+                        ? "/v3/mail/send"
+                        : uri.AbsolutePath
                 };
-                options.Host = hostBuilder.Uri.AbsoluteUri;
-                options.HttpErrorAsException = true;
+                var configuration = new SendGridConfiguration(
+                    uri.UserInfo,
+                    hostBuilder.Uri.AbsoluteUri
+                );
                 var logger = _serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger<SendGridDispatcher>();
-                return new SendGridDispatcher(options, logger, _serviceProvider.GetService<IHttpClientFactory>());
+                return new SendGridDispatcher(configuration, logger, _serviceProvider.GetService<IHttpClientFactory>());
             }
             if (uri.Scheme == "smtp" || uri.Scheme == "smtps")
             {

@@ -1,23 +1,23 @@
 <Project>
   <PropertyGroup>
-    <Version>8.0.0-alpha02</Version>
+    <Version>10.0.0</Version>
   </PropertyGroup>
   <PropertyGroup>
-    <LangVersion>12.0</LangVersion>
+    <LangVersion>14.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <PropertyGroup>
-    <ProtoVersion>8.0.0-rc14</ProtoVersion>
+    <ProtoVersion>10.0.0</ProtoVersion>
     <Fx3Version>3.1.16</Fx3Version>
     <Fx6Version>6.0.0</Fx6Version>
-    <Fx7Version>7.0.0</Fx7Version>
     <Fx8Version>8.0.0</Fx8Version>
+    <Fx10Version>10.0.0</Fx10Version>
     <FxVersion Condition=" '$(TargetFramework)' == 'netstandard2.1' ">$(Fx3Version)</FxVersion>
     <FxVersion Condition=" '$(TargetFramework)' == 'net6.0' ">$(Fx6Version)</FxVersion>
-    <FxVersion Condition=" '$(TargetFramework)' == 'net7.0' ">$(Fx7Version)</FxVersion>
+    <FxVersion Condition=" '$(TargetFramework)' == 'net8.0' ">$(Fx8Version)</FxVersion>
     <!-- alapértelmezett -->
-    <FxVersion Condition=" '$(FxVersion)' == '' ">$(Fx8Version)</FxVersion>
+    <FxVersion Condition=" '$(FxVersion)' == '' ">$(Fx10Version)</FxVersion>
     <IsTrimmable>true</IsTrimmable>
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>

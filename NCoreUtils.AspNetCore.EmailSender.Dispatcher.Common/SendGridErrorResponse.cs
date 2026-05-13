@@ -1,11 +1,9 @@
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
+namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher;
+
+public class SendGridErrorResponse(IReadOnlyList<SendGridError> errors)
 {
-    public class SendGridErrorResponse
-    {
-        [JsonPropertyName("errors")]
-        public List<SendGridError> Errors { get; set; } = new List<SendGridError>();
-    }
+    [JsonPropertyName("errors")]
+    public IReadOnlyList<SendGridError> Errors { get; } = errors;
 }

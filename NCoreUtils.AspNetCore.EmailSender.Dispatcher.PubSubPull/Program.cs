@@ -1,97 +1,139 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using Google.Cloud.PubSub.V1;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NCoreUtils.Google.Cloud.PubSub;
 using NCoreUtils.Internal;
 using NCoreUtils.Logging;
 
-namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
+namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher;
+
+public class Program
 {
-    public class Program
+    private static async Task Main(string[] args)
     {
-        // NOTE: Required to use GOOGLE_APPLICATION_CREDENTIALS
-        [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(Google.Apis.Auth.OAuth2.JsonCredentialParameters))]
-#pragma warning disable IDE0060
-        private static async Task Main(string[] args)
-#pragma warning restore IDE0060
+        var cancellation = new CancellationTokenSource();
+        Console.CancelKeyPress += (_, e) =>
         {
-            var cancellation = new CancellationTokenSource();
-            Console.CancelKeyPress += (_, e) =>
+            e.Cancel = true;
+            cancellation.Cancel();
+        };
+
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Environment.CurrentDirectory)
+            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+            .AddJsonFile("secrets/appsettings.json", optional: true, reloadOnChange: false)
+            .AddEnvironmentVariables("EMAIL_")
+            .Build();
+
+        var serviceCollection = new ServiceCollection();
+        var googleCredentials = await Google.ServiceAccountCredentialData.ReadDefaultAsync();
+        // CONFIGURE ***************************************************************************************************
+        using var services = new ServiceCollection()
+            .AddLogging(b => b
+                .ClearProviders()
+                .AddConfiguration(configuration.GetSection("Logging"))
+                .AddGoogleFluentd(projectId: configuration["Google:ProjectId"])
+            )
+            // HTTP CLIENT
+            .ConfigureHttpClientDefaults(b =>
             {
-                e.Cancel = true;
-                cancellation.Cancel();
-            };
-
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Environment.CurrentDirectory)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
-                .AddJsonFile("secrets/appsettings.json", optional: true, reloadOnChange: false)
-                .AddEnvironmentVariables("EMAIL_")
-                .Build();
-
-            using var services = new ServiceCollection()
-                .AddLogging(b => b
-                    .ClearProviders()
-                    .AddConfiguration(configuration.GetSection("Logging"))
-                    .AddGoogleFluentd(projectId: configuration["Google:ProjectId"])
-                )
-                .AddHttpClient()
-                .AddHttpClient()
-                .AddSingleton<EmailProcessor>()
-                .AddSingleton(serviceProvider => DispatcherConfig.FromConfiguration(serviceProvider, configuration.GetSection("Dispatchers")))
-                .BuildServiceProvider(true);
-
-            var subscriptionName = configuration.GetSubscriptionConfiguration();
-            var subscriber = await new SubscriberClientBuilder
-            {
-                SubscriptionName = subscriptionName,
-                Logger = services.GetRequiredService<ILogger<SubscriberClient>>(),
-                Settings = new SubscriberClient.Settings
+                b.ConfigurePrimaryHttpMessageHandler((handler, _) =>
                 {
-                    AckDeadline = TimeSpan.FromMinutes(5)
-                },
-                GoogleCredential = await Google.Apis.Auth.OAuth2.GoogleCredential.GetApplicationDefaultAsync()
-            }.BuildAsync(cancellation.Token).ConfigureAwait(false);
-            using var __ = cancellation.Token.Register(() =>
-            {
-                _ = subscriber.StopAsync(TimeSpan.FromSeconds(5));
-            });
-            var processor = services.GetRequiredService<EmailProcessor>();
-            processor.Logger.LogDebug("Start processing messages.");
-            await subscriber.StartAsync(async (message, cancellationToken) =>
-            {
-                var messageId = message.MessageId;
-                processor.Logger.LogDebug("Processing message {MessageId}.", messageId);
-                try
-                {
-                    EmailMessageTask entry;
-                    try
+                    if (handler is SocketsHttpHandler socketsHandler)
                     {
-                        entry = JsonSerializer.Deserialize(message.Data.ToByteArray(), EmailMessageTaskSerializerContext.Default.EmailMessageTask)
-                            ?? throw new InvalidOperationException("Unable to deserialize Pub/Sub request entry.");
+                        socketsHandler.SslOptions.RemoteCertificateValidationCallback = (_, _, _, _) => true;
+                        socketsHandler.SslOptions.CertificateRevocationCheckMode = X509RevocationMode.NoCheck;
                     }
-                    catch (Exception exn)
-                    {
-                        processor.Logger.LogError(exn, "Failed to deserialize pub/sub message {MessageId}.", messageId);
-                        return SubscriberClient.Reply.Ack; // Message should not be retried...
-                    }
-                    var status = await processor.ProcessAsync(entry, messageId, cancellationToken).ConfigureAwait(false);
-                    var ack = status < 400 ? SubscriberClient.Reply.Ack : SubscriberClient.Reply.Nack;
-                    processor.Logger.LogDebug("Processed message {MessageId} => {Ack}.", messageId, ack);
-                    return ack;
-                }
-                catch (Exception exn)
+                });
+            })
+            // GOOGLE
+            .AddGoogleCloudPubSubClient(googleCredentials)
+            // .AddGoogleCloudMonitoringClient(googleCredentials)
+            // Processor implementation
+            .AddSingleton<EmailProcessor>()
+            .AddSingleton(serviceProvider => DispatcherConfig.FromConfiguration(serviceProvider, configuration.GetSection("Dispatchers")))
+            .BuildServiceProvider(validateScopes: true);
+
+        var processor = services.GetRequiredService<EmailProcessor>();
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        var projectId = configuration.GetRequiredValue("Google:ProjectId");
+        var subscriptionId = configuration.GetRequiredValue("Google:SubscriptionId");
+        var pubSubClient = services.GetRequiredService<IPubSubV1Api>();
+        var parallelOptions = new ParallelOptions
+        {
+            CancellationToken = cancellation.Token,
+            MaxDegreeOfParallelism = 24
+        };
+
+        logger.LogSubscriberClientMessageProcessStarted();
+
+        while (!cancellation.IsCancellationRequested)
+        {
+            try
+            {
+                var messages = await pubSubClient.PullAsync(projectId, subscriptionId, 12, cancellation.Token);
+                if (messages.ReceivedMessages is { Count: > 0 } receivedMessages)
                 {
-                    processor.Logger.LogError(exn, "Failed to process pub/sub message {MessageId}.", messageId);
-                    return SubscriberClient.Reply.Nack;
+                    logger.LogSubscriberClientReceivedMessages(receivedMessages.Count);
+                    await Parallel.ForEachAsync(receivedMessages, parallelOptions, async (receivedMessage, cancellationToken) =>
+                    {
+                        var message = receivedMessage.Message;
+                        if (message is not null && message.Data is not null)
+                        {
+                            var messageId = message.MessageId;
+                            logger.LogSubscriberClientProcessMessage(messageId);
+                            try
+                            {
+                                EmailMessageTask entry;
+                                try
+                                {
+                                    entry = JsonSerializer.Deserialize(Convert.FromBase64String(message.Data), EmailMessageTaskSerializerContext.Default.EmailMessageTask)
+                                        ?? throw new InvalidOperationException("Unable to deserialize Pub/Sub request entry.");
+                                }
+                                catch (Exception exn) when (exn is not OperationCanceledException)
+                                {
+                                    // Message should not be retried...
+                                    logger.LogSubscriberClientDeserializeFailed(exn, messageId);
+                                    if (receivedMessage.AckId is string ackId)
+                                    {
+                                        await pubSubClient
+                                            .AcknowledgeAsync(projectId, subscriptionId, [ackId], CancellationToken.None)
+                                            .ConfigureAwait(false);
+                                    }
+                                    return;
+                                }
+                                var status = await processor.ProcessAsync(entry, messageId ?? "<null>", cancellationToken).ConfigureAwait(false);
+                                if (status < 400)
+                                {
+                                    // logger.LogSendGridMessageScheduled(messageId, sendGridMessageId);
+                                    logger.LogSubscriberClientReplyMessage(messageId, true);
+                                    if (receivedMessage.AckId is string ackId)
+                                    {
+                                        await pubSubClient
+                                            .AcknowledgeAsync(projectId, subscriptionId, [ackId], CancellationToken.None)
+                                            .ConfigureAwait(false);
+                                    }
+                                }
+                                else
+                                {
+                                    logger.LogSubscriberClientNoReplyMessageRetry(messageId);
+                                }
+                            }
+                            catch (Exception exn) when (exn is not OperationCanceledException)
+                            {
+                                logger.LogSubscriberClientReplyMessageFailed(exn, messageId);
+                            }
+                        }
+                    });
                 }
-            }).ConfigureAwait(false);
-            processor.Logger.LogDebug("Processing messages stopped succefully.");
+            }
+            catch (OperationCanceledException) { /* noop */ }
+            catch (Exception exn)
+            {
+                logger.LogSubscriberClientPullFailed(exn);
+            }
         }
     }
 }

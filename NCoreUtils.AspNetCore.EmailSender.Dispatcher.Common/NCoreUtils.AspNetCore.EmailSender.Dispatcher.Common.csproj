@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>NCoreUtils.AspNetCore.EmailSender.Dispatcher</RootNamespace>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -11,7 +11,6 @@
     <ProjectReference Include="..\NCoreUtils.AspNetCore.EmailSender.Internal\NCoreUtils.AspNetCore.EmailSender.Internal.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="3.4.3" />
-    <PackageReference Include="SendGrid" Version="9.28.1" />
+    <PackageReference Include="MailKit" Version="4.16.0" />
   </ItemGroup>
 </Project>
