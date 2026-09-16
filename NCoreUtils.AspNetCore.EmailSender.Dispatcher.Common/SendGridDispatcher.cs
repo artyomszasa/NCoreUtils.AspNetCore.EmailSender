@@ -45,7 +45,7 @@ public class SendGridDispatcher(
             .ConfigureAwait(false);
         if (response.StatusCode is HttpStatusCode.Accepted or HttpStatusCode.Created or HttpStatusCode.OK)
         {
-            return string.Empty;
+            return (response.Headers.TryGetValues("X-Message-Id", out var ss) ? ss.FirstOrDefault() : default) ?? string.Empty;
         }
         SendGridErrorResponse errorResponse;
         if (Logger.IsEnabled(LogLevel.Debug))
