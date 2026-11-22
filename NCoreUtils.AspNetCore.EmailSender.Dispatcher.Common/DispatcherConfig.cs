@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NCoreUtils.AspNetCore.EmailSender.Dispatcher.Stalwart;
+using NCoreUtils.OAuth2.Internal;
 
 namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher;
 
@@ -87,6 +89,34 @@ public class DispatcherConfig
                     user: GetSmtpCredentials(uri)
                 );
                 return new SmtpDispatcher(configuration);
+            }
+            if (uri.Scheme == "stalwart")
+            {
+                var cred = GetSmtpCredentials(uri) ?? throw new InvalidOperationException("AccountId is required");
+                var configuration = new StalwartConfiguration(
+                    domain: uri.Host,
+                    accountId: cred.Username
+                );
+                var identity = new StalwartIdentityConfiguration(
+                    email: cred.Username,
+                    password: cred.Password
+                );
+                var httpClientFactory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
+                return new StalwartDispatcher(
+                    logger: _serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger<StalwartDispatcher>(),
+                    identityManager: new StalwartIdentityManager(
+                        tokenService: new TokenServiceEndpointsWrapper(
+                            new TokenServiceEndpointsClient(
+                                configuration: new() { Endpoint = $"https://{uri.Host}", Path = "auth" },
+                                httpClientFactory: httpClientFactory
+                            )
+                        ),
+                        identity,
+                        _serviceProvider.GetRequiredService<ILoggerFactory>().CreateLogger<StalwartIdentityManager>()
+                    ),
+                    configuration: configuration,
+                    httpClientFactory: httpClientFactory
+                );
             }
             throw new InvalidOperationException($"Unsupported dispatcher URI: {uri.AbsoluteUri}.");
         }

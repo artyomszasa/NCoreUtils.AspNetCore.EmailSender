@@ -1,28 +1,22 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using NCoreUtils.Internal;
 
 namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
 {
-    public class EmailProcessor
+    public class EmailProcessor(ILogger<EmailProcessor> logger, DispatcherConfig config)
     {
-        private readonly DispatcherConfig _config;
+        private readonly DispatcherConfig _config = Preconditions.ThrowIfNull(config);
 
-        public ILogger Logger { get; }
+        private ConcurrentDictionary<string, IEmailSender> SenderCache { get; } = new();
 
-        public EmailProcessor(ILogger<EmailProcessor> logger, DispatcherConfig config)
-        {
-            Logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
-            _config = config ?? throw new System.ArgumentNullException(nameof(config));
-        }
+        public ILogger Logger { get; } = Preconditions.ThrowIfNull(logger);
 
         public async Task<int> ProcessAsync(EmailMessageTask entry, string messageId, CancellationToken cancellationToken)
         {
             try
             {
-                var dispatcher = _config.CreateSender(entry.Owner);
+                var dispatcher = SenderCache.GetOrAdd(entry.Owner, _config.CreateSender);
                 var id = await dispatcher.ScheduleAsync(entry.Message, cancellationToken);
                 Logger.LogInformation(
                     "Successfully sent email message [from = {Sender}, to = [{Recipients}], cc = [{Cc}], bcc = [{Bcc}], messageId = {MessageId}] => {Id}.",

@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
-using MQTTnet.Client;
 
 namespace NCoreUtils.AspNetCore.EmailSender
 {
@@ -64,7 +63,7 @@ namespace NCoreUtils.AspNetCore.EmailSender
             {
                 if (_client is null)
                 {
-                    var client = new MqttFactory().CreateMqttClient();
+                    var client = new MqttClientFactory().CreateMqttClient();
                     client.ConnectedAsync += HandleConnectedAsync;
                     client.DisconnectedAsync += HandleDisconnectedAsync;
                     await client.ConnectAsync(_clientOptions, cancellationToken).ConfigureAwait(false);
@@ -95,7 +94,7 @@ namespace NCoreUtils.AspNetCore.EmailSender
                 {
                     await _client.DisconnectAsync(new MqttClientDisconnectOptions
                     {
-                        Reason = MqttClientDisconnectReason.AdministrativeAction,
+                        Reason = MqttClientDisconnectOptionsReason.AdministrativeAction,
                         ReasonString = "shutdown"
                     }, cancellationToken).ConfigureAwait(false);
                     _client = default;

@@ -23,6 +23,8 @@ public struct ListWrapper<T>
 
     public readonly bool IsReadOnly => false;
 
+    public readonly bool Empty => _list is not List<T> list || list.Count == 0;
+
     public void Add(T item)
         => (_list ??= []).Add(item);
 

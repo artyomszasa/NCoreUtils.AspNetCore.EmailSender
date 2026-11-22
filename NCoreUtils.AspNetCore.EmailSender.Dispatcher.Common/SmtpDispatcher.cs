@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MailKit;
 using MailKit.Net.Smtp;
 using MimeKit;
 
@@ -70,7 +71,7 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
             {
                 await client.AuthenticateAsync(_utf8, _configuration.User.Value.Username, _configuration.User.Value.Password, cancellationToken);
             }
-            await client.SendAsync(email, cancellationToken);
+            await client.SendAsync(new SendRequest(email), cancellationToken);
             await client.DisconnectAsync(true, CancellationToken.None);
             return string.Empty;
         }

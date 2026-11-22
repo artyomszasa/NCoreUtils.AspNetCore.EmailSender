@@ -27,7 +27,6 @@ public class Program
             .AddEnvironmentVariables("EMAIL_")
             .Build();
 
-        var serviceCollection = new ServiceCollection();
         var googleCredentials = await Google.ServiceAccountCredentialData.ReadDefaultAsync();
         // CONFIGURE ***************************************************************************************************
         using var services = new ServiceCollection()

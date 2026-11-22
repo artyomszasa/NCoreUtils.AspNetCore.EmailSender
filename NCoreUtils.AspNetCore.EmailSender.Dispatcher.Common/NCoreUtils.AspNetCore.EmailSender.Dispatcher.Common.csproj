@@ -11,6 +11,11 @@
     <ProjectReference Include="..\NCoreUtils.AspNetCore.EmailSender.Internal\NCoreUtils.AspNetCore.EmailSender.Internal.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="4.16.0" />
+    <PackageReference Include="MailKit" Version="5.0.0" />
+    <PackageReference Include="NCoreUtils.Extensions.Base64" Version="10.0.0-rc00" />
+    <PackageReference Include="NCoreUtils.Extensions.Collections" Version="10.0.0" />
+    <PackageReference Include="NCoreUtils.Extensions.Primitives" Version="10.0.0.3" />
+    <PackageReference Include="NCoreUtils.Maybe" Version="3.4.0" />
+    <PackageReference Include="NCoreUtils.OAuth2.TokenService.Client" Version="10.0.0-rc03" />
   </ItemGroup>
 </Project>
