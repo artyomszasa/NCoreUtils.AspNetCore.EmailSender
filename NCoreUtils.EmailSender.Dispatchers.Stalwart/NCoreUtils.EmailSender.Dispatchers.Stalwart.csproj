@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>NCoreUtils.EmailSender.Dispatchers.Stalwart</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NCoreUtils.EmailSender.Dispatchers.Common\NCoreUtils.EmailSender.Dispatchers.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="$(FxVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(FxVersion)" />
+    <PackageReference Include="NCoreUtils.Extensions.Base64" Version="10.0.0-rc00" />
+    <PackageReference Include="NCoreUtils.Extensions.Collections" Version="10.0.0" />
+    <PackageReference Include="NCoreUtils.Extensions.Primitives" Version="10.0.0.3" />
+    <PackageReference Include="NCoreUtils.Maybe" Version="3.2.0" />
+    <PackageReference Include="NCoreUtils.OAuth2.TokenService.Client" Version="10.0.0-rc03" />
+  </ItemGroup>
+</Project>

@@ -16,6 +16,9 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NCoreUtils.AspNetCore.EmailSender.Dispatcher.Common\NCoreUtils.AspNetCore.EmailSender.Dispatcher.Common.csproj" />
+    <ProjectReference Include="..\NCoreUtils.EmailSender.Dispatchers.Smtp\NCoreUtils.EmailSender.Dispatchers.Smtp.csproj" />
+    <ProjectReference Include="..\NCoreUtils.EmailSender.Dispatchers.SendGrid\NCoreUtils.EmailSender.Dispatchers.SendGrid.csproj" />
+    <ProjectReference Include="..\NCoreUtils.EmailSender.Dispatchers.Stalwart\NCoreUtils.EmailSender.Dispatchers.Stalwart.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NCoreUtils.AspNetCore.Logging" Version="10.0.0-rc01" />

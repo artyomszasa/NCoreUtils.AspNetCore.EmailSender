@@ -51,6 +51,9 @@ public class Program
             .AddGoogleCloudPubSubClient(googleCredentials)
             // .AddGoogleCloudMonitoringClient(googleCredentials)
             // Processor implementation
+            .AddSmtpDispatcher()
+            .AddSendGridDispatcher()
+            .AddStalwartDispatcher()
             .AddSingleton<EmailProcessor>()
             .AddSingleton(serviceProvider => DispatcherConfig.FromConfiguration(serviceProvider, configuration.GetSection("Dispatchers")))
             .BuildServiceProvider(validateScopes: true);

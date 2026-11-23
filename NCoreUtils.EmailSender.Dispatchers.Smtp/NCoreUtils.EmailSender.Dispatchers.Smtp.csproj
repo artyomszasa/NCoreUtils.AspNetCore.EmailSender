@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>NCoreUtils.EmailSender.Dispatchers.Smtp</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NCoreUtils.EmailSender.Dispatchers.Common\NCoreUtils.EmailSender.Dispatchers.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MailKit" Version="5.0.0" />
+  </ItemGroup>
+</Project>

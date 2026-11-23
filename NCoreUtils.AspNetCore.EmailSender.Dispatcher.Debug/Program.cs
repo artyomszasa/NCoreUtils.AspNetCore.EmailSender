@@ -7,6 +7,9 @@ await using var serviceCollection = new ServiceCollection()
     .AddLogging(b => b.ClearProviders().SetMinimumLevel(LogLevel.Debug).AddSimpleConsole(o => o.SingleLine = true))
     .AddHttpClient()
     // .AddHttpBodyTraceFor("TokenServiceEndpointsClient")
+    .AddSmtpDispatcher()
+    .AddSendGridDispatcher()
+    .AddStalwartDispatcher()
     .AddSingleton<EmailProcessor>()
     .AddSingleton(serviceProvider => new DispatcherConfig(serviceProvider, new Dictionary<string, Uri>
     {

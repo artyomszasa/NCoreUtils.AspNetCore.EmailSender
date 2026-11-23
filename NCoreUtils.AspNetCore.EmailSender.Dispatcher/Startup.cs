@@ -1,10 +1,4 @@
-using System;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 #if !DEBUG
 using NCoreUtils.Logging;
 #endif
@@ -16,7 +10,7 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
         static ForwardedHeadersOptions ConfigureForwardedHeaders()
         {
             var opts = new ForwardedHeadersOptions();
-            opts.KnownNetworks.Clear();
+            opts.KnownIPNetworks.Clear();
             opts.KnownProxies.Clear();
             opts.ForwardedHeaders = ForwardedHeaders.All;
             return opts;
@@ -37,6 +31,9 @@ namespace NCoreUtils.AspNetCore.EmailSender.Dispatcher
             services
                 .AddHttpContextAccessor()
                 .AddHttpClient()
+                .AddSmtpDispatcher()
+                .AddSendGridDispatcher()
+                .AddStalwartDispatcher()
                 .AddSingleton<EmailProcessor>()
                 .AddSingleton(serviceProvider => DispatcherConfig.FromConfiguration(serviceProvider, _configuration.GetSection("Dispatchers")))
                 .AddCors(b => b.AddDefaultPolicy(opts => opts
